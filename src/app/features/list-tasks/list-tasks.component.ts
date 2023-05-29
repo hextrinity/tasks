@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { TaskCategory } from 'src/app/store/task-category.enum';
 import { Task } from 'src/app/store/task.interface';
 
 
@@ -11,17 +12,36 @@ import { TasksService } from 'src/app/store/tasks.service';
 })
 export class ListTasksComponent implements OnInit {
   tasks!: Task[];
+  categoryId!: TaskCategory;
 
-  categoryId!: string
+  taskCategories: typeof TaskCategory = TaskCategory;
+  tasksByCategory: { [key: string]: Task[] } = {
+    notUrgentImportant: [],
+    notUrgentNotImportant: [],
+    urgentImportant: [],
+    urgentNotImportant: []
+  };
+
+
 
   constructor(private taskService: TasksService) {}
 
   ngOnInit(): void {
 
-    this.categoryId = 'notUrgentImportant';
+    this.fetchTasksByCategory(TaskCategory.NotUrgentImportant);
+    this.fetchTasksByCategory(TaskCategory.NotUrgentNotImportant);
+    this.fetchTasksByCategory(TaskCategory.UrgentImportant);
+    this.fetchTasksByCategory(TaskCategory.UrgentNotImportant);
 
-    this.taskService.getTasksByCategory(this.categoryId).subscribe((tasks) => {
-      this.tasks = tasks;
+  }
+
+  fetchTasksByCategory(category: TaskCategory): void {
+    this.taskService.getTasksByCategory(category).subscribe((tasks) => {
+      this.tasksByCategory[category] = tasks;
     });
+  }
+
+  getTaskCategories(): { key: string, value: string }[] {
+    return Object.entries(this.taskCategories).map(([key, value]) => ({ key, value }));
   }
 }
