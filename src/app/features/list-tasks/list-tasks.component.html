@@ -1,10 +1,26 @@
-<div *ngFor="let category of getTaskCategories()">
-  <h2>Tasks for Category: {{ category.key }}</h2>
-  <ul>
-    <li *ngFor="let task of tasksByCategory[category.value]">
-      <strong>Name:</strong> {{ task.name }}<br>
-      <strong>Description:</strong> {{ task.description }}<br>
-      <strong>Due Date:</strong> {{ task.dueDate }}
-    </li>
-  </ul>
+<div class="grid-container">
+  <div class="grid-item" *ngFor="let category of taskCategories; let i = index" [style.background]="getTileBackground(i)">
+    <div class="category-container">
+      <div class="category-title">{{ category }}</div>
+      <div class="task-details">
+        <mat-card *ngFor="let task of tasksByCategory[category]" class="task-card">
+          <mat-card-header>
+            <mat-card-title>{{ task.name }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p><strong>Description:</strong> {{ task.description }}</p>
+            <p><strong>Due Date:</strong> {{ task.dueDate }}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-icon-button color="primary" aria-label="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" aria-label="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+  </div>
 </div>
