@@ -27,6 +27,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTreeModule } from '@angular/material/tree';
 import {MatGridListModule} from '@angular/material/grid-list';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 const materialModules = [
   CdkTreeModule,
@@ -56,7 +57,8 @@ const materialModules = [
   MatTreeModule,
   OverlayModule,
   PortalModule,
-  MatGridListModule
+  MatGridListModule,
+  DragDropModule
 ];
 
 @NgModule({

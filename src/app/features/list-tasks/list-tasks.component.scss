@@ -12,7 +12,7 @@
 }
 
 .category-container {
-  display: flex;
+
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
@@ -20,6 +20,15 @@
 
 .category-title {
   margin: 16px;
+  overflow: hidden;
+}
+
+.category-text {
+  float: left;
+}
+
+.add-button {
+  float: right;
 }
 
 .task-details {

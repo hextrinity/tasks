@@ -5,5 +5,6 @@ export interface Task {
   name: string;
   description: string;
   dueDate: string;
-  categoryId: TaskCategory;
+  categoryId: TaskCategory | string;
+  orderId: number;
 }
