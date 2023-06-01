@@ -8,8 +8,20 @@
         </button>
       </div>
       <div class="task-details">
-        <div cdkDropList [cdkDropListData]="tasksByCategory[category]" (cdkDropListDropped)="onDrop($event, category)">
-          <mat-card *ngFor="let task of tasksByCategory[category]" class="task-card" cdkDrag [cdkDragData]="task">
+        <div
+          cdkDropList
+          [cdkDropListData]="tasksByCategory[category]"
+          [cdkDropListConnectedTo]="getConnectedDropLists(category)"
+          class="task-list"
+          [id]="category"
+          (cdkDropListDropped)="onDrop($event, category)"
+        >
+          <mat-card
+            *ngFor="let task of tasksByCategory[category]"
+            class="task-card"
+            cdkDrag
+            [cdkDragData]="task"
+          >
             <mat-card-header>
               <mat-card-title>{{ task.name }}</mat-card-title>
             </mat-card-header>
