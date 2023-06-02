@@ -66,17 +66,22 @@ export class TasksService {
     return from(tasksCollection.doc(taskId).delete());
   }
 
-  updateTaskCategory(categoryId: string, tasks: Task[]): Observable<void> {
+  updateTaskCategory(oldCategoryId: string, newCategoryId: string, tasks: Task[]): Observable<void[]> {
+    const deleteTasks$ = tasks.map((task) => {
+      const tasksCollection = this.categoriesCollection.doc(oldCategoryId).collection<Task>('tasks');
+      return from(tasksCollection.doc(task.id).delete());
+    });
+
     const updateTasks$ = tasks.map((task) => {
-      task.categoryId = categoryId;
-      const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
+      task.categoryId = newCategoryId;
+      const tasksCollection = this.categoriesCollection.doc(newCategoryId).collection<Task>('tasks');
       const taskDoc = tasksCollection.doc(task.id);
 
       return from(taskDoc.set(task, { merge: true }));
     });
 
     // Combine the observables into a single observable
-    return updateTasks$.length > 0 ? updateTasks$.reduce((prev, curr) => prev.pipe(switchMap(() => curr))) : of(undefined);
+    return forkJoin([...deleteTasks$, ...updateTasks$]);
   }
 
 }

@@ -45,9 +45,6 @@ export class ListTasksComponent implements OnInit {
     const { previousContainer, container, item } = event;
     const task = item.data;
 
-    console.log("previousContainer", previousContainer);
-    console.log("container", container);
-
     if (previousContainer === container) {
       // Rearrange tasks within the same category
       moveItemInArray(container.data, event.previousIndex, event.currentIndex);
@@ -73,13 +70,13 @@ export class ListTasksComponent implements OnInit {
         event.currentIndex
       );
 
-      console.log("container.data after transfer", container.data); // Add this line
-
       // Update the category of the task
       task.categoryId = category.toString(); // Assign the correct category ID here
 
       // Call the updateTaskCategory method to transfer the task and update the order
-      this.taskService.updateTaskCategory(category.toString(), container.data).subscribe(
+      const oldCategoryId = previousContainer.id;
+      const newCategoryId = container.id;
+      this.taskService.updateTaskCategory(oldCategoryId, newCategoryId, container.data).subscribe(
         () => {
           console.log('Task category and order updated successfully');
         },
