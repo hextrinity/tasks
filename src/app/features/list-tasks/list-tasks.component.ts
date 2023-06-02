@@ -38,13 +38,32 @@ export class ListTasksComponent implements OnInit {
     return this.connectedDropLists[this.taskCategories.indexOf(category)];
   }
 
+
+
+
   onDrop(event: CdkDragDrop<Task[]>, category: TaskCategory): void {
     const { previousContainer, container, item } = event;
     const task = item.data;
 
+    console.log("previousContainer", previousContainer);
+    console.log("container", container);
+
     if (previousContainer === container) {
       // Rearrange tasks within the same category
       moveItemInArray(container.data, event.previousIndex, event.currentIndex);
+
+      // Update the order IDs of the tasks in the same category
+      container.data.forEach((task, index) => {
+        task.orderId = index + 1; // Adding 1 to start the order ID from 1
+        this.taskService.updateTask(task).subscribe(
+          () => {
+            console.log('Task order updated successfully');
+          },
+          (error) => {
+            console.error('Failed to update task order', error, task);
+          }
+        );
+      });
     } else {
       // Move tasks between categories
       transferArrayItem(
@@ -54,36 +73,28 @@ export class ListTasksComponent implements OnInit {
         event.currentIndex
       );
 
+      console.log("container.data after transfer", container.data); // Add this line
+
       // Update the category of the task
-      task.categoryId = category;
+      task.categoryId = category.toString(); // Assign the correct category ID here
 
-      // Update the order IDs of the tasks in the previous category
-      previousContainer.data.forEach((task, index) => {
-        task.orderId = index + 1; // Adding 1 to start the order ID from 1
-        this.taskService.updateTask(task).subscribe(
-          () => {
-            console.log('Task order updated successfully');
-          },
-          (error) => {
-            console.error('Failed to update task order', error);
-          }
-        );
-      });
-    }
-
-    // Update the order IDs of the tasks in the same/new category
-    container.data.forEach((task, index) => {
-      task.orderId = index + 1; // Adding 1 to start the order ID from 1
-      this.taskService.updateTask(task).subscribe(
+      // Call the updateTaskCategory method to transfer the task and update the order
+      this.taskService.updateTaskCategory(category.toString(), container.data).subscribe(
         () => {
-          console.log('Task order updated successfully');
+          console.log('Task category and order updated successfully');
         },
         (error) => {
-          console.error('Failed to update task order', error);
+          console.error('Failed to update task category and order', error, task);
         }
       );
-    });
+    }
   }
+
+
+
+
+
+
 
 
 

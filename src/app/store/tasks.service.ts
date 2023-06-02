@@ -1,22 +1,19 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/compat/firestore';
-import { BehaviorSubject, Observable, forkJoin, from } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { AngularFirestore, AngularFirestoreCollection, DocumentChangeAction, DocumentSnapshot } from '@angular/fire/compat/firestore';
+import { BehaviorSubject, Observable, throwError, of, from, forkJoin } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { Task } from './task.interface';
 import { TaskCategory } from './task-category.enum';
 
 @Injectable({
   providedIn: 'root',
 })
-
 export class TasksService {
-
   private categoriesCollection!: AngularFirestoreCollection<any>;
 
   constructor(private firestore: AngularFirestore) {
     this.categoriesCollection = this.firestore.collection<any>('categories');
   }
-
 
   getTasksByCategory(categoryId: string): BehaviorSubject<Task[]> {
     const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
@@ -49,8 +46,19 @@ export class TasksService {
     const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
     const taskDoc = tasksCollection.doc(id);
 
-    // Update the task document with the new category and order ID
-    return from(taskDoc.update(taskWithoutId));
+    // Check if the category document exists
+    const categoryDoc = this.categoriesCollection.doc(categoryId);
+    return categoryDoc.get().pipe(
+      switchMap((doc: DocumentSnapshot<any>) => {
+        if (doc.exists) {
+          // Update the task document with the new category and order ID
+          return from(taskDoc.update(taskWithoutId));
+        } else {
+          // Handle the case where the category document does not exist
+          return throwError(`Category with ID ${categoryId} does not exist.`);
+        }
+      })
+    );
   }
 
   deleteTask(categoryId: string, taskId: string): Observable<void> {
@@ -58,20 +66,17 @@ export class TasksService {
     return from(tasksCollection.doc(taskId).delete());
   }
 
-  updateTaskCategory(categoryId: string, tasks: Task[]): Observable<void[]> {
+  updateTaskCategory(categoryId: string, tasks: Task[]): Observable<void> {
     const updateTasks$ = tasks.map((task) => {
-      task.categoryId = categoryId; // Update the categoryId of the task
+      task.categoryId = categoryId;
       const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
-      const taskDoc = tasksCollection.doc(task.id); // Use task.id instead of id
+      const taskDoc = tasksCollection.doc(task.id);
 
-      return from(taskDoc.update(task));
+      return from(taskDoc.set(task, { merge: true }));
     });
 
     // Combine the observables into a single observable
-    return forkJoin(updateTasks$);
+    return updateTasks$.length > 0 ? updateTasks$.reduce((prev, curr) => prev.pipe(switchMap(() => curr))) : of(undefined);
   }
-
-
-
 
 }
