@@ -35,11 +35,27 @@ export class TasksService {
     return tasksSubject;
   }
 
-  addTask(categoryId: string, task: Task): Observable<void> {
+  // addTask(categoryId: string, task: Task): Observable<void> {
+  //   const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
+  //   const { id, ...taskWithoutId } = task;
+  //   return from(tasksCollection.doc(String(id)).set(taskWithoutId));
+  // }
+
+  addTask(categoryId: string, task: Task): Observable<Task> {
     const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
-    const { id, ...taskWithoutId } = task;
-    return from(tasksCollection.doc(String(id)).set(taskWithoutId));
+    const { ...taskWithoutId } = task;
+
+    return new Observable<Task>(observer => {
+      tasksCollection.add(taskWithoutId).then(docRef => {
+        const addedTask: Task = { id: docRef.id, ...taskWithoutId };
+        observer.next(addedTask);
+        observer.complete();
+      }).catch(error => {
+        observer.error(error);
+      });
+    });
   }
+
 
   updateTask(task: Task): Observable<void> {
     const { categoryId, id, ...taskWithoutId } = task;

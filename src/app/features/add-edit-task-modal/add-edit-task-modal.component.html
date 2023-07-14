@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit' : 'Add' }} Form</h2>
+<mat-dialog-content>
+  <form [formGroup]="formGroup">
+    <mat-form-field>
+      <input matInput placeholder="Name" formControlName="name" required>
+    </mat-form-field>
+    <mat-form-field>
+      <textarea matInput placeholder="Description" formControlName="description" required></textarea>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput [matDatepicker]="dueDatePicker" placeholder="Due Date" formControlName="dueDate" required>
+      <mat-datepicker-toggle matSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #dueDatePicker></mat-datepicker>
+    </mat-form-field>
+    <div mat-dialog-actions>
+      <button mat-button (click)="cancel()">Cancel</button>
+      <button mat-button type="submit" (click)="saveForm()" [disabled]="formGroup.invalid">Save</button>
+    </div>
+  </form>
+</mat-dialog-content>
+

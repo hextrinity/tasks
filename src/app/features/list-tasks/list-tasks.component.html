@@ -1,9 +1,13 @@
-<div class="grid-container">
+<div class="grid-container" cdkDropListGroup>
   <div class="grid-item" *ngFor="let category of taskCategories; let i = index" [style.background]="getTileBackground(i)">
     <div class="category-container">
       <div class="category-title">
         {{ category }}
-        <button mat-icon-button color="warn" aria-label="Delete">
+        <button
+          mat-icon-button color="warn"
+          aria-label="Add Task"
+          (click)="openDialog(category)"
+        >
           <mat-icon class="add-icon">add</mat-icon>
         </button>
       </div>
@@ -27,13 +31,21 @@
             </mat-card-header>
             <mat-card-content>
               <p><strong>Description:</strong> {{ task.description }}</p>
-              <p><strong>Due Date:</strong> {{ task.dueDate }}</p>
+              <p><strong>Due Date:</strong> {{ task.dueDate | date: 'dd/MM/yyyy' }}</p>
             </mat-card-content>
             <mat-card-actions>
-              <button mat-icon-button color="primary" aria-label="Edit">
+              <button
+                (click)="openDialog(category, task)"
+                mat-icon-button color="primary"
+                aria-label="Edit"
+              >
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" aria-label="Delete">
+              <button
+                (click)="deleteTask(category, task.id?task.id: null)"
+                mat-icon-button color="warn"
+                aria-label="Delete"
+              >
                 <mat-icon>delete</mat-icon>
               </button>
             </mat-card-actions>

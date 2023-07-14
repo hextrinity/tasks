@@ -28,6 +28,9 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTreeModule } from '@angular/material/tree';
 import {MatGridListModule} from '@angular/material/grid-list';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 const materialModules = [
   CdkTreeModule,
@@ -58,7 +61,10 @@ const materialModules = [
   OverlayModule,
   PortalModule,
   MatGridListModule,
-  DragDropModule
+  DragDropModule,
+  MatDialogModule,
+  MatDatepickerModule,
+  MatNativeDateModule
 ];
 
 @NgModule({

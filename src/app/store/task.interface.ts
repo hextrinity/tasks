@@ -4,7 +4,7 @@ export interface Task {
   id?: string;
   name: string;
   description: string;
-  dueDate: string;
+  dueDate: Date | null;
   categoryId: TaskCategory | string;
   orderId: number;
 }
