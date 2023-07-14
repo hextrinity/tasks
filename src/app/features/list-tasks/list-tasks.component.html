@@ -2,7 +2,7 @@
   <div class="grid-item" *ngFor="let category of taskCategories; let i = index" [style.background]="getTileBackground(i)">
     <div class="category-container">
       <div class="category-title">
-        {{ category }}
+       {{taskCategoryNames[category]}}
         <button
           mat-icon-button color="warn"
           aria-label="Add Task"

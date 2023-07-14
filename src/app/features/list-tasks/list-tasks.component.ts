@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { TaskCategory } from 'src/app/store/task-category.enum';
+import { TaskCategory, TaskCategoryNames } from 'src/app/store/task-category.enum';
 import { Task } from 'src/app/store/task.interface';
 import { TasksService } from 'src/app/store/tasks.service';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
@@ -13,6 +13,7 @@ import { Subscription } from 'rxjs';
 })
 export class ListTasksComponent implements OnInit {
   taskCategories = Object.values(TaskCategory);
+  taskCategoryNames = TaskCategoryNames;
   tasksByCategory: { [key: string]: Task[] } = {};
   connectedDropLists: string[][] = [];
   subs!: Subscription;
@@ -87,7 +88,7 @@ export class ListTasksComponent implements OnInit {
   }
 
   getTileBackground(index: number): string {
-    const colors = ['lightblue', 'lightgreen', 'lightyellow', 'lightpink'];
+    const colors = ['lightpink', 'lightgreen', 'lightblue', 'lightyellow'];
     return colors[index % colors.length];
   }
 
