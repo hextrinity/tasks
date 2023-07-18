@@ -5,7 +5,15 @@ import { TasksService } from 'src/app/store/tasks.service';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { DialogService } from 'src/app/shared/dialog.service';
 import { Subscription } from 'rxjs';
+import { AddEditTaskModalComponent } from '../add-edit-task-modal/add-edit-task-modal.component';
+import { ColorSchemeService } from './color-scheme.service';
 
+interface ColorScheme {
+  color1: string;
+  color2: string;
+  color3: string;
+  color4: string;
+}
 @Component({
   selector: 'app-list-tasks',
   templateUrl: './list-tasks.component.html',
@@ -17,7 +25,34 @@ export class ListTasksComponent implements OnInit {
   tasksByCategory: { [key: string]: Task[] } = {};
   connectedDropLists: string[][] = [];
   subs!: Subscription;
-  constructor(private taskService: TasksService, private dialogService: DialogService) {}
+
+  colorSchemes: { [key: string]: ColorScheme } = {
+    colorScheme1: {
+      color1: '#988dae',
+      color2: '#84a59d',
+      color3: '#f5cac3',
+      color4: '#f7ede2'
+    },
+    colorScheme2: {
+      color1: '#ef8354',
+      color2: '#4f5d75',
+      color3: '#f2dda4',
+      color4: '#bfc0c0'
+    },
+    colorScheme3: {
+      color1: '#e63946',
+      color2: '#f1faee',
+      color3: '#a8dadc',
+      color4: '#457b9d'
+    },
+  };
+
+
+  constructor(
+    private taskService: TasksService,
+    private dialogService: DialogService,
+    private colorSchemeService: ColorSchemeService
+    ) {}
 
   ngOnInit(): void {
     this.fetchTasksByCategory(TaskCategory.NotUrgentImportant);
@@ -28,6 +63,9 @@ export class ListTasksComponent implements OnInit {
     this.connectedDropLists = this.taskCategories.map((category) =>
       this.taskCategories.filter((c) => c !== category)
     );
+
+    const initialColorScheme = this.getColorSchemeByIndex(0);
+    this.colorSchemeService.setCurrentScheme(initialColorScheme);
   }
 
   fetchTasksByCategory(category: TaskCategory): void {
@@ -39,7 +77,6 @@ export class ListTasksComponent implements OnInit {
   getConnectedDropLists(category: TaskCategory): string[] {
     return this.connectedDropLists[this.taskCategories.indexOf(category)];
   }
-
 
   onDrop(event: CdkDragDrop<Task[]>, category: TaskCategory): void {
     const { previousContainer, container, item } = event;
@@ -87,10 +124,26 @@ export class ListTasksComponent implements OnInit {
     }
   }
 
+
+  getColorSchemeByIndex(index: number): ColorScheme {
+    const colorSchemeKeys = Object.keys(this.colorSchemes);
+    const schemeName = colorSchemeKeys[index] as keyof typeof this.colorSchemes;
+    return this.colorSchemes[schemeName];
+  }
+
+  changeColorScheme(index: number): void {
+    const selectedScheme = this.getColorSchemeByIndex(index);
+    this.colorSchemeService.setCurrentScheme(selectedScheme);
+  }
+
   getTileBackground(index: number): string {
-    const colors = ['lightpink', 'lightgreen', 'lightblue', 'lightyellow'];
+    const currentScheme = this.colorSchemeService.getCurrentScheme().getValue();
+    console.log('currentScheme', currentScheme);
+
+    const colors = [currentScheme.color1, currentScheme.color2, currentScheme.color3, currentScheme.color4];
     return colors[index % colors.length];
   }
+
 
   deleteTask(categoryId: string, taskId: string | null): void {
     if (!taskId) {
@@ -122,7 +175,7 @@ export class ListTasksComponent implements OnInit {
       };
     }
 
-    const dialogRef = this.dialogService.openDialog(data);
+    const dialogRef = this.dialogService.openDialog(AddEditTaskModalComponent, data);
     this.subs = dialogRef.afterClosed().subscribe((result: { action: string; formValue: Task }) => {
       if (result && result.action === 'save') {
           const formValue = result.formValue;

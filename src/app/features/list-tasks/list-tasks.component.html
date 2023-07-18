@@ -1,8 +1,33 @@
+
+
+<div class="all-schemes"  >
+  <div class="square" (click)="changeColorScheme(0)">
+    <div class="rectangle"></div>
+    <div class="rectangle"></div>
+    <div class="rectangle" ></div>
+    <div class="rectangle" ></div>
+  </div>
+  <div class="square" (click)="changeColorScheme(1)">
+    <div class="rectangle"></div>
+    <div class="rectangle"></div>
+    <div class="rectangle"></div>
+    <div class="rectangle"></div>
+  </div>
+  <div class="square" (click)="changeColorScheme(2)">
+    <div class="rectangle"></div>
+    <div class="rectangle"></div>
+    <div class="rectangle"></div>
+    <div class="rectangle"></div>
+  </div>
+
+</div>
+
+
 <div class="grid-container" cdkDropListGroup>
-  <div class="grid-item" *ngFor="let category of taskCategories; let i = index" [style.background]="getTileBackground(i)">
+  <div class="grid-item" *ngFor="let category of taskCategories; let i = index" [style.background-color]="getTileBackground(i)">
     <div class="category-container">
-      <div class="category-title">
-       {{taskCategoryNames[category]}}
+      <div  class="category-title">
+        {{taskCategoryNames[category]}}
         <button
           mat-icon-button color="warn"
           aria-label="Add Task"
@@ -55,3 +80,4 @@
     </div>
   </div>
 </div>
+

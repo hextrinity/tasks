@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection, DocumentChangeAction, DocumentSnapshot } from '@angular/fire/compat/firestore';
-import { BehaviorSubject, Observable, throwError, of, from, forkJoin } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, from, forkJoin } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { Task } from './task.interface';
-import { TaskCategory } from './task-category.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -27,19 +26,13 @@ export class TasksService {
           return { id, ...data };
         })
       ),
-      map((tasks: Task[]) => tasks.sort((a, b) => a.orderId - b.orderId)) // Sort tasks by orderId
+      map((tasks: Task[]) => tasks.sort((a, b) => a.orderId - b.orderId))
     ).subscribe((tasks) => {
       tasksSubject.next(tasks);
     });
 
     return tasksSubject;
   }
-
-  // addTask(categoryId: string, task: Task): Observable<void> {
-  //   const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
-  //   const { id, ...taskWithoutId } = task;
-  //   return from(tasksCollection.doc(String(id)).set(taskWithoutId));
-  // }
 
   addTask(categoryId: string, task: Task): Observable<Task> {
     const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
