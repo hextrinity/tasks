@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreCollection, DocumentChangeAction, DocumentSnapshot } from '@angular/fire/compat/firestore';
+import { AngularFirestore, AngularFirestoreCollection, DocumentChangeAction, DocumentSnapshot, QuerySnapshot } from '@angular/fire/compat/firestore';
 import { BehaviorSubject, Observable, throwError, from, forkJoin } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-import { Task } from './task.interface';
+import { catchError, map, switchMap, take } from 'rxjs/operators';
+import { Task } from '../models/task.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -34,19 +34,40 @@ export class TasksService {
     return tasksSubject;
   }
 
+  getDeletedTasksByCategory(categoryId: string): BehaviorSubject<Task[]> {
+    const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('deletedTasks');
+    const tasksSubject = new BehaviorSubject<Task[]>([]);
+
+    tasksCollection.snapshotChanges().pipe(
+      map((actions: DocumentChangeAction<Task>[]) =>
+        actions.map((a: DocumentChangeAction<Task>) => {
+          const data = a.payload.doc.data() as Task;
+          const id = a.payload.doc.id;
+          return { id, ...data };
+        })
+      ),
+      map((tasks: Task[]) => tasks.sort((a, b) => a.orderId - b.orderId))
+    ).subscribe((tasks) => {
+      tasksSubject.next(tasks);
+    });
+
+    return tasksSubject;
+  }
+
+
   addTask(categoryId: string, task: Task): Observable<Task> {
     const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
     const { ...taskWithoutId } = task;
 
-    return new Observable<Task>(observer => {
-      tasksCollection.add(taskWithoutId).then(docRef => {
+    return from(tasksCollection.add(taskWithoutId)).pipe(
+      map(docRef => {
         const addedTask: Task = { id: docRef.id, ...taskWithoutId };
-        observer.next(addedTask);
-        observer.complete();
-      }).catch(error => {
-        observer.error(error);
-      });
-    });
+        return addedTask;
+      }),
+      catchError(error => {
+        return throwError(() => new Error(error))
+      })
+    );
   }
 
 
@@ -55,25 +76,46 @@ export class TasksService {
     const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
     const taskDoc = tasksCollection.doc(id);
 
-    // Check if the category document exists
-    const categoryDoc = this.categoriesCollection.doc(categoryId);
-    return categoryDoc.get().pipe(
-      switchMap((doc: DocumentSnapshot<any>) => {
+    // Check if the task document exists
+    return taskDoc.get().pipe(
+      switchMap((doc) => {
         if (doc.exists) {
           // Update the task document with the new category and order ID
           return from(taskDoc.update(taskWithoutId));
         } else {
-          // Handle the case where the category document does not exist
-          return throwError(`Category with ID ${categoryId} does not exist.`);
+          // Handle the case where the task document does not exist
+          return throwError(() => new Error(`Task with ID ${id} does not exist.`))
         }
       })
     );
   }
 
-  deleteTask(categoryId: string, taskId: string): Observable<void> {
-    const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
+  deleteTaskForever(categoryId: string, taskId: string): Observable<void> {
+    const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('deletedTasks');
     return from(tasksCollection.doc(taskId).delete());
   }
+
+
+  deleteTask(categoryId: string, taskId: string): Observable<void> {
+    const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
+    const deletedTasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('deletedTasks');
+
+    // Get the task to be deleted
+    return tasksCollection.doc(taskId).valueChanges().pipe(
+      take(1), // Ensure the observable completes after emitting the first value
+      switchMap((task: Task | undefined) => {
+        if (task) {
+          // Move the task to the deletedTasks collection
+          return from(deletedTasksCollection.doc(taskId).set(task)).pipe(
+            switchMap(() => from(tasksCollection.doc(taskId).delete()))
+          );
+        } else {
+          return throwError(() => new Error(`Task with ID ${taskId} does not exist.`))
+        }
+      })
+    );
+  }
+
 
   updateTaskCategory(oldCategoryId: string, newCategoryId: string, tasks: Task[]): Observable<void[]> {
     const deleteTasks$ = tasks.map((task) => {

@@ -1,8 +1,7 @@
-
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Task } from 'src/app/store/task.interface';
+import { Task } from 'src/app/models/task.interface';
 
 @Component({
     selector: 'app-add-edit-task-modal',
@@ -21,7 +20,7 @@ import { Task } from 'src/app/store/task.interface';
     }
 
     ngOnInit() {
-      this.isEditMode = !!this.data.name; // Check if data.name is present (edit mode)
+      this.isEditMode = !!this.data.name;
       this.initializeForm(this.data);
     }
 
@@ -40,7 +39,7 @@ import { Task } from 'src/app/store/task.interface';
         const formValue = this.formGroup.value;
         const task: Task = {
           ...formValue,
-          dueDate: formValue.dueDate ? formValue.dueDate.getTime() : null, // Convert Date to timestamp
+          dueDate: formValue.dueDate ? formValue.dueDate.getTime() : null,
         };
 
         this.dialogRef.close({ action: 'save', formValue: task });
@@ -50,5 +49,4 @@ import { Task } from 'src/app/store/task.interface';
     cancel(): void {
       this.dialogRef.close({ action: 'cancel', formValue: null });
     }
-
   }

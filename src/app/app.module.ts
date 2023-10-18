@@ -14,13 +14,15 @@ import { ListTasksComponent } from './features/list-tasks/list-tasks.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from './material.module';
 import { AddEditTaskModalComponent } from './features/add-edit-task-modal/add-edit-task-modal.component';
-
-
+import { TopMenuComponent } from './features/top-menu/top-menu.component';
+import { ListDeletedTasksComponent } from './features/list-deleted-tasks/list-deleted-tasks.component';
 @NgModule({
   declarations: [
     AppComponent,
     ListTasksComponent,
-    AddEditTaskModalComponent
+    AddEditTaskModalComponent,
+    TopMenuComponent,
+    ListDeletedTasksComponent
   ],
   imports: [
     BrowserModule,

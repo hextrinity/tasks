@@ -1,52 +1,25 @@
 import { Component, OnInit } from '@angular/core';
-import { TaskCategory, TaskCategoryNames } from 'src/app/store/task-category.enum';
-import { Task } from 'src/app/store/task.interface';
-import { TasksService } from 'src/app/store/tasks.service';
+import { TaskCategory, TaskCategoryNames } from 'src/app/models/task-category.enum';
+import { Task } from 'src/app/models/task.interface';
+import { TasksService } from 'src/app/services/tasks.service';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-import { DialogService } from 'src/app/shared/dialog.service';
+import { DialogService } from 'src/app/services/dialog.service';
 import { Subscription } from 'rxjs';
 import { AddEditTaskModalComponent } from '../add-edit-task-modal/add-edit-task-modal.component';
-import { ColorSchemeService } from './color-scheme.service';
-
-interface ColorScheme {
-  color1: string;
-  color2: string;
-  color3: string;
-  color4: string;
-}
+import { ColorSchemeService } from '../../services/color-scheme.service';
 @Component({
   selector: 'app-list-tasks',
   templateUrl: './list-tasks.component.html',
-  styleUrls: ['./list-tasks.component.scss'],
+  styleUrls: ['./list-tasks.component.scss']
 })
 export class ListTasksComponent implements OnInit {
   taskCategories = Object.values(TaskCategory);
   taskCategoryNames = TaskCategoryNames;
   tasksByCategory: { [key: string]: Task[] } = {};
   connectedDropLists: string[][] = [];
-  subs!: Subscription;
-
-  colorSchemes: { [key: string]: ColorScheme } = {
-    colorScheme1: {
-      color1: '#988dae',
-      color2: '#84a59d',
-      color3: '#f5cac3',
-      color4: '#f7ede2'
-    },
-    colorScheme2: {
-      color1: '#ef8354',
-      color2: '#4f5d75',
-      color3: '#f2dda4',
-      color4: '#bfc0c0'
-    },
-    colorScheme3: {
-      color1: '#e63946',
-      color2: '#f1faee',
-      color3: '#a8dadc',
-      color4: '#457b9d'
-    },
-  };
-
+  dialogCloseSubs!: Subscription;
+  tasksByCategorySubs!: Subscription;
+  updateTaskSubs!: Subscription;
 
   constructor(
     private taskService: TasksService,
@@ -63,13 +36,11 @@ export class ListTasksComponent implements OnInit {
     this.connectedDropLists = this.taskCategories.map((category) =>
       this.taskCategories.filter((c) => c !== category)
     );
-
-    const initialColorScheme = this.getColorSchemeByIndex(0);
-    this.colorSchemeService.setCurrentScheme(initialColorScheme);
   }
 
   fetchTasksByCategory(category: TaskCategory): void {
-    this.taskService.getTasksByCategory(category).subscribe((tasks) => {
+    this.tasksByCategorySubs = this.taskService.getTasksByCategory(category)
+    .subscribe((tasks) => {
       this.tasksByCategory[category] = tasks;
     });
   }
@@ -89,14 +60,12 @@ export class ListTasksComponent implements OnInit {
       // Update the order IDs of the tasks in the same category
       container.data.forEach((task, index) => {
         task.orderId = index + 1; // Adding 1 to start the order ID from 1
-        this.taskService.updateTask(task).subscribe(
-          () => {
-            console.log('Task order updated successfully');
-          },
-          (error) => {
-            console.error('Failed to update task order', error, task);
-          }
-        );
+        this.updateTaskSubs = this.taskService.updateTask(task)
+        .subscribe({
+            next: (v) => console.log('Task order updated successfully'),
+            error: (error) => console.error('Failed to update task order', error, task),
+            complete: () => console.info('Complete')
+        });
       });
     } else {
       // Move tasks between categories
@@ -113,35 +82,21 @@ export class ListTasksComponent implements OnInit {
       // Call the updateTaskCategory method to transfer the task and update the order
       const oldCategoryId = previousContainer.id;
       const newCategoryId = container.id;
-      this.taskService.updateTaskCategory(oldCategoryId, newCategoryId, container.data).subscribe(
-        () => {
-          console.log('Task category and order updated successfully');
-        },
-        (error) => {
-          console.error('Failed to update task category and order', error, task);
-        }
-      );
+
+      this.taskService.updateTaskCategory(oldCategoryId, newCategoryId, container.data)
+      .subscribe({
+          next: (v) => console.log('Task category updated successfully'),
+          error: (error) => console.error('Failed to update task category', error, task),
+          complete: () => console.info('Complete')
+      });
     }
-  }
-
-
-  getColorSchemeByIndex(index: number): ColorScheme {
-    const colorSchemeKeys = Object.keys(this.colorSchemes);
-    const schemeName = colorSchemeKeys[index] as keyof typeof this.colorSchemes;
-    return this.colorSchemes[schemeName];
-  }
-
-  changeColorScheme(index: number): void {
-    const selectedScheme = this.getColorSchemeByIndex(index);
-    this.colorSchemeService.setCurrentScheme(selectedScheme);
   }
 
   getTileBackground(index: number): string {
     const currentScheme = this.colorSchemeService.getCurrentScheme().getValue();
-    console.log('currentScheme', currentScheme);
 
     const colors = [currentScheme.color1, currentScheme.color2, currentScheme.color3, currentScheme.color4];
-    return colors[index % colors.length];
+    return colors[index];
   }
 
 
@@ -149,14 +104,12 @@ export class ListTasksComponent implements OnInit {
     if (!taskId) {
       return;
     }
-    this.taskService.deleteTask(categoryId, taskId).subscribe(
-      () => {
-        console.log('Task deleted successfully');
-      },
-      (error) => {
-        console.error('Failed to delete task', error, taskId);
-      }
-    );
+    this.taskService.deleteTask(categoryId, taskId)
+    .subscribe({
+        next: (v) => console.log('Task deleted successfully'),
+        error: (error) => console.error('Failed to delete task', error, taskId),
+        complete: () => console.info('Complete')
+    });
   }
 
   openDialog(categoryId: string, task?: Task): void {
@@ -176,38 +129,36 @@ export class ListTasksComponent implements OnInit {
     }
 
     const dialogRef = this.dialogService.openDialog(AddEditTaskModalComponent, data);
-    this.subs = dialogRef.afterClosed().subscribe((result: { action: string; formValue: Task }) => {
+    this.dialogCloseSubs = dialogRef.afterClosed().subscribe((result: { action: string; formValue: Task }) => {
       if (result && result.action === 'save') {
           const formValue = result.formValue;
           // Handle the returned form value
           if (task) {
             let taskToUpdate = {...task, ...formValue};
             // Edit operation
-            this.taskService.updateTask(taskToUpdate).subscribe(
-              () => {
-                console.log('Task updated successfully');
-              },
-              (error) => {
-                console.error('Failed to update task', error, taskToUpdate);
-              }
-            );
+            this.taskService.updateTask(taskToUpdate)
+            .subscribe({
+                next: (v) => console.log('Task updated successfully'),
+                error: (error) => console.error('Failed to update task', error, taskToUpdate),
+                complete: () => console.info('Complete')
+            });
           } else {
             // Add operation
-          this.taskService.addTask(categoryId, formValue).subscribe(
-                (addedTask) => {
-                  this.tasksByCategory[categoryId].push(addedTask);
-                },
-                (error) => {
-                  console.error('Failed to add task', error, formValue);
-                }
-              );
+            this.taskService.addTask(categoryId, formValue)
+            .subscribe({
+                next: (addedTask) => this.tasksByCategory[categoryId].push(addedTask),
+                error: (error) => console.error('Failed to add task', error, formValue),
+                complete: () => console.info('Complete')
+            });
           }
       }
     });
   }
 
   ngOnDestroy(){
-    this.subs.unsubscribe();
+    if (this.dialogCloseSubs) this.dialogCloseSubs.unsubscribe();
+    if (this.tasksByCategorySubs) this.tasksByCategorySubs.unsubscribe();
+    if (this.updateTaskSubs) this.updateTaskSubs.unsubscribe();
   }
 
 }

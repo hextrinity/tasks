@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-interface ColorScheme {
+export interface ColorScheme {
   color1: string;
   color2: string;
   color3: string;

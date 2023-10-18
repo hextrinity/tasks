@@ -6,8 +6,8 @@ export enum TaskCategory {
 }
 
 export enum TaskCategoryNames {
-  urgentImportant = 'Urgent Important',
-  urgentNotImportant = 'Urgent Not Important',
-  notUrgentImportant = 'Not Urgent Important',
-  notUrgentNotImportant = 'Not Urgent Not Important',
+  urgentImportant = 'Urgent, Important',
+  urgentNotImportant = 'Urgent, Not Important',
+  notUrgentImportant = 'Not Urgent, Important',
+  notUrgentNotImportant = 'Not Urgent, Not Important',
 }
