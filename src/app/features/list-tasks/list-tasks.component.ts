@@ -39,7 +39,7 @@ export class ListTasksComponent implements OnInit {
   }
 
   fetchTasksByCategory(category: TaskCategory): void {
-    this.tasksByCategorySubs = this.taskService.getTasksByCategory(category)
+    this.tasksByCategorySubs = this.taskService.getTasksByCategory(category, 'tasks')
     .subscribe((tasks) => {
       this.tasksByCategory[category] = tasks;
     });
@@ -54,12 +54,10 @@ export class ListTasksComponent implements OnInit {
     const task = item.data;
 
     if (previousContainer === container) {
-      // Rearrange tasks within the same category
       moveItemInArray(container.data, event.previousIndex, event.currentIndex);
 
-      // Update the order IDs of the tasks in the same category
       container.data.forEach((task, index) => {
-        task.orderId = index + 1; // Adding 1 to start the order ID from 1
+        task.orderId = index + 1;
         this.updateTaskSubs = this.taskService.updateTask(task)
         .subscribe({
             next: (v) => console.log('Task order updated successfully'),
@@ -68,7 +66,6 @@ export class ListTasksComponent implements OnInit {
         });
       });
     } else {
-      // Move tasks between categories
       transferArrayItem(
         previousContainer.data,
         container.data,
@@ -76,10 +73,8 @@ export class ListTasksComponent implements OnInit {
         event.currentIndex
       );
 
-      // Update the category of the task
-      task.categoryId = category.toString(); // Assign the correct category ID here
+      task.categoryId = category.toString();
 
-      // Call the updateTaskCategory method to transfer the task and update the order
       const oldCategoryId = previousContainer.id;
       const newCategoryId = container.id;
 
@@ -115,10 +110,10 @@ export class ListTasksComponent implements OnInit {
   openDialog(categoryId: string, task?: Task): void {
     let data!: Task;
 
-    if (task){ // edit operation
+    if (task){
       const dueDate = task.dueDate ? new Date(task.dueDate) : null;
       data = { ...task, dueDate };
-    } else { // add operation
+    } else {
       data = {
         name: '',
         description: '',
@@ -132,10 +127,8 @@ export class ListTasksComponent implements OnInit {
     this.dialogCloseSubs = dialogRef.afterClosed().subscribe((result: { action: string; formValue: Task }) => {
       if (result && result.action === 'save') {
           const formValue = result.formValue;
-          // Handle the returned form value
           if (task) {
             let taskToUpdate = {...task, ...formValue};
-            // Edit operation
             this.taskService.updateTask(taskToUpdate)
             .subscribe({
                 next: (v) => console.log('Task updated successfully'),
@@ -143,7 +136,6 @@ export class ListTasksComponent implements OnInit {
                 complete: () => console.info('Complete')
             });
           } else {
-            // Add operation
             this.taskService.addTask(categoryId, formValue)
             .subscribe({
                 next: (addedTask) => this.tasksByCategory[categoryId].push(addedTask),

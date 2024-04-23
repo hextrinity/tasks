@@ -1,23 +1,24 @@
 $colorSchemes: (
   colorScheme1: (
-    color1: #988dae,
-    color2: #84a59d,
-    color3: #f5cac3,
-    color4: #f7ede2
+    color1: #ddbea9,
+    color2: #ffe8d6,
+    color3: #b7b7a4,
+    color4: #a5a58d
   ),
   colorScheme2: (
-    color1: #ef8354,
-    color2: #939496,
-    color3: #f2dda4,
-    color4: #bfc0c0
+    color1: #f7d1cd,
+    color2: #e8c2ca,
+    color3: #d1b3c4,
+    color4: #b392ac
   ),
   colorScheme3: (
-    color1: #8892b3,
-    color2: #fdebd3,
-    color3: #679186,
-    color4: #bbd4ce
+    color1: #CFC7D2,
+    color2: #BEA8AA,
+    color3: #9E9885,
+    color4: #7C7F65
   )
 );
+
 
 .square {
   display: flex;
@@ -63,7 +64,7 @@ $colorSchemes: (
 }
 
 button.active {
-  color: #f44336; /* For example, setting the text color to red */
-  font-weight: bold; /* Example: making the text bold */
+  color: #f44336;
+  font-weight: bold;
 }
 

@@ -5,9 +5,9 @@
 }
 
 .grid-item {
-  width: 50%; /* Display two items per row on larger screens */
+  width: 50%;
   @media (max-width: 767px) {
-    width: 100%; /* Display one item per row on mobile devices */
+    width: 100%;
   }
 }
 
@@ -22,8 +22,9 @@
 }
 
 .category-title {
-  margin: 16px;
+  margin: 18px;
   overflow: hidden;
+  font-size: 20px;
 }
 
 .category-text {

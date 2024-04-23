@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreCollection, DocumentChangeAction, DocumentSnapshot, QuerySnapshot } from '@angular/fire/compat/firestore';
+import { AngularFirestore, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/compat/firestore';
 import { BehaviorSubject, Observable, throwError, from, forkJoin } from 'rxjs';
 import { catchError, map, switchMap, take } from 'rxjs/operators';
 import { Task } from '../models/task.interface';
@@ -14,8 +14,8 @@ export class TasksService {
     this.categoriesCollection = this.firestore.collection<any>('categories');
   }
 
-  getTasksByCategory(categoryId: string): BehaviorSubject<Task[]> {
-    const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
+  getTasksByCategory(categoryId: string, subCategoryName: string): BehaviorSubject<Task[]> {
+    const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>(subCategoryName);
     const tasksSubject = new BehaviorSubject<Task[]>([]);
 
     tasksCollection.snapshotChanges().pipe(
@@ -33,27 +33,6 @@ export class TasksService {
 
     return tasksSubject;
   }
-
-  getDeletedTasksByCategory(categoryId: string): BehaviorSubject<Task[]> {
-    const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('deletedTasks');
-    const tasksSubject = new BehaviorSubject<Task[]>([]);
-
-    tasksCollection.snapshotChanges().pipe(
-      map((actions: DocumentChangeAction<Task>[]) =>
-        actions.map((a: DocumentChangeAction<Task>) => {
-          const data = a.payload.doc.data() as Task;
-          const id = a.payload.doc.id;
-          return { id, ...data };
-        })
-      ),
-      map((tasks: Task[]) => tasks.sort((a, b) => a.orderId - b.orderId))
-    ).subscribe((tasks) => {
-      tasksSubject.next(tasks);
-    });
-
-    return tasksSubject;
-  }
-
 
   addTask(categoryId: string, task: Task): Observable<Task> {
     const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
@@ -70,20 +49,16 @@ export class TasksService {
     );
   }
 
-
   updateTask(task: Task): Observable<void> {
     const { categoryId, id, ...taskWithoutId } = task;
     const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
     const taskDoc = tasksCollection.doc(id);
 
-    // Check if the task document exists
     return taskDoc.get().pipe(
       switchMap((doc) => {
         if (doc.exists) {
-          // Update the task document with the new category and order ID
           return from(taskDoc.update(taskWithoutId));
         } else {
-          // Handle the case where the task document does not exist
           return throwError(() => new Error(`Task with ID ${id} does not exist.`))
         }
       })
@@ -100,12 +75,10 @@ export class TasksService {
     const tasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('tasks');
     const deletedTasksCollection = this.categoriesCollection.doc(categoryId).collection<Task>('deletedTasks');
 
-    // Get the task to be deleted
     return tasksCollection.doc(taskId).valueChanges().pipe(
-      take(1), // Ensure the observable completes after emitting the first value
+      take(1),
       switchMap((task: Task | undefined) => {
         if (task) {
-          // Move the task to the deletedTasks collection
           return from(deletedTasksCollection.doc(taskId).set(task)).pipe(
             switchMap(() => from(tasksCollection.doc(taskId).delete()))
           );
@@ -131,7 +104,6 @@ export class TasksService {
       return from(taskDoc.set(task, { merge: true }));
     });
 
-    // Combine the observables into a single observable
     return forkJoin([...deleteTasks$, ...updateTasks$]);
   }
 

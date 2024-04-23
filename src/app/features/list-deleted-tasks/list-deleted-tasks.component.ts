@@ -32,7 +32,7 @@ export class ListDeletedTasksComponent {
     }
 
     fetchTasksByCategory(category: TaskCategory): void {
-      this.taskService.getDeletedTasksByCategory(category).subscribe((tasks) => {
+      this.taskService.getTasksByCategory(category, 'deletedTasks').subscribe((tasks) => {
         this.tasksByCategory[category] = tasks;
       });
     }
@@ -43,23 +43,19 @@ export class ListDeletedTasksComponent {
 
     getTileBackground(index: number): string {
       const currentScheme = this.colorSchemeService.getCurrentScheme().getValue();
-     // console.log('currentScheme', currentScheme);
 
       const colors = [currentScheme.color1, currentScheme.color2, currentScheme.color3, currentScheme.color4];
-      return colors[index % colors.length];
+      return colors[index];
     }
 
     deleteTaskForever(categoryId: string, taskId: string | null): void {
       if (!taskId) {
         return;
       }
-      this.taskService.deleteTaskForever(categoryId, taskId).subscribe(
-        () => {
-          console.log('Task deleted successfully');
-        },
-        (error) => {
-          console.error('Failed to delete task', error, taskId);
-        }
-      );
+      this.taskService.deleteTaskForever(categoryId, taskId).subscribe({
+          next: (v) => console.log('Task deleted successfully'),
+          error: (error) => console.error('Failed to delete task', error, taskId),
+          complete: () => console.info('Complete')
+      });
     }
 }
