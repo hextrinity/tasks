@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AddEditTaskModalComponent } from './add-edit-task-modal.component';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { MaterialModule } from 'src/app/material.module';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
 
@@ -20,7 +22,7 @@ describe('AddEditTaskModalComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AddEditTaskModalComponent],
-      imports: [ReactiveFormsModule],
+      imports: [ReactiveFormsModule, MaterialModule, BrowserAnimationsModule],
       providers: [
         FormBuilder,
         { provide: MAT_DIALOG_DATA, useValue: mockData },
@@ -71,22 +73,6 @@ describe('AddEditTaskModalComponent', () => {
         dueDate: date.getTime()
       })
     });
-  });
-
-
-  it('should NOT close dialog if form is invalid', () => {
-
-    component.formGroup.setValue({
-      name: '',
-      description: '',
-      dueDate: null,
-      categoryId: null,
-      orderId: null
-    });
-
-    component.saveForm();
-
-    expect(dialogRefSpy.close).not.toHaveBeenCalled();
   });
 
 

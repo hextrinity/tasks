@@ -1,7 +1,8 @@
 /* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compileOnSave": false,
-  "compilerOptions": {
+  "compilerOptions": { 
+    "types": ["jasmine"],   
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
@@ -30,5 +31,6 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+   "exclude": ["cypress", "cypress.config.ts", "node_modules"]
 }
